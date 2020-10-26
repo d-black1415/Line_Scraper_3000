@@ -89,8 +89,16 @@ with requests.Session() as s:
     #Store nfl page in BeautifulSoup object
     foot_table = BeautifulSoup(foot.text,'html.parser')
 
+test = BeautifulSoup(screen.text, 'html.parser')
+nfl_box = test.find_all('div',{"class": re.compile('box.*')})
+print(nfl_box[0])
+for box in nfl_box:
+    print(box.a.title)
+print(target)
+# teams = foot_table.select('[data-content="Team"]')
+print(foot_table)
 final_table = foot_table.find('table')
 print(final_table)
 games = final_table.find_all('tr', {'class': re.compile('TrGame.*')})
 
-#Need to figure out how to parse through html with structured solution for robust repeatability
+
