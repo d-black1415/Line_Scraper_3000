@@ -2,20 +2,20 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import pandas as pd
-data = {"User":"stevengfan","password":"boopool"}
+data = {"account":"stevengfan","password":"boopool"}
 
-cookies = {
-    'Cookie-Sport-Selection': '%7B%22SOCCER%20-%20EUROPE%22%3A%221%22%2C%22FOOTBALL%22%3A%221%22%2C%22FOOTBALL%20-%20FUTURES%22%3Anull%2C%22GOLF%22%3Anull%2C%22AUTO%20RACING%22%3Anull%2C%22FOOTBALL%20-%20PROPS%22%3Anull%2C%22LIVE%20IN%20-%20PLAY%22%3Anull%2C%22SOCCER%20PROPS%22%3Anull%2C%22MIXED%20MARTIAL%20ARTS%22%3Anull%7D',
-    '__cfduid': 'db14c8ef95994b1bbce08ed6d9075f9e31603488273',
-    'ASP.NET_SessionId': '3uutpvzedmqacfrsbmn3cknd',
-    'pl': '',
-}
+# cookies = {
+#     'Cookie-Sport-Selection': '%7B%22SOCCER%20-%20EUROPE%22%3A%221%22%2C%22FOOTBALL%22%3A%221%22%2C%22FOOTBALL%20-%20FUTURES%22%3Anull%2C%22GOLF%22%3Anull%2C%22AUTO%20RACING%22%3Anull%2C%22FOOTBALL%20-%20PROPS%22%3Anull%2C%22LIVE%20IN%20-%20PLAY%22%3Anull%2C%22SOCCER%20PROPS%22%3Anull%2C%22MIXED%20MARTIAL%20ARTS%22%3Anull%7D',
+#     '__cfduid': 'db14c8ef95994b1bbce08ed6d9075f9e31603488273',
+#     'ASP.NET_SessionId': '3uutpvzedmqacfrsbmn3cknd',
+#     'pl': '',
+# }
 
 message_headers = {
     'authority': 'www.betfastaction.ag',
     'cache-control': 'max-age=0',
     'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
     'sec-fetch-site': 'same-origin',
     'sec-fetch-mode': 'navigate',
@@ -28,7 +28,7 @@ message_headers = {
 Welcome_headers = {
     'authority': 'www.betfastaction.ag',
     'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
     'sec-fetch-site': 'same-origin',
     'sec-fetch-mode': 'navigate',
@@ -40,7 +40,7 @@ Welcome_headers = {
 cs_headers = {
     'authority': 'www.betfastaction.ag',
     'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
     'sec-fetch-site': 'same-origin',
     'sec-fetch-mode': 'navigate',
@@ -60,7 +60,7 @@ nfl_headers = {
     'upgrade-insecure-requests': '1',
     'origin': 'https://www.betfastaction.ag',
     'content-type': 'application/x-www-form-urlencoded',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
     'sec-fetch-site': 'same-origin',
     'sec-fetch-mode': 'navigate',
@@ -81,17 +81,23 @@ nfl = {
 #Start Requests Session and navigate to NFL page
 with requests.Session() as s:
     p = s.post("https://www.betfastaction.ag/login.aspx", data = data)
-    mes = s.get('https://www.betfastaction.ag/wager/Message.aspx', headers=message_headers, cookies=cookies)
-    wel = s.get('https://www.betfastaction.ag/wager/Welcome.aspx', headers=Welcome_headers, cookies=cookies)
-    screen = s.get('https://www.betfastaction.ag/wager/CreateSports.aspx', headers=cs_headers, params=params, cookies=cookies)
-    foot = s.post('https://www.betfastaction.ag/wager/CreateSports.aspx', headers=nfl_headers, params=params, cookies=cookies, data=nfl)
+    p_cook = s.cookies
+    mes = s.get('https://www.betfastaction.ag/wager/Message.aspx', headers=message_headers, cookies=p_cook)
+    wel = s.get('https://www.betfastaction.ag/wager/Welcome.aspx', headers=Welcome_headers, cookies=p_cook)
+    screen = s.get('https://www.betfastaction.ag/wager/CreateSports.aspx', headers=cs_headers, params=params, cookies=p_cook)
+    foot = s.post('https://www.betfastaction.ag/wager/CreateSports.aspx', headers=nfl_headers, params=params, cookies=p_cook, data=nfl)
     
     #Store nfl page in BeautifulSoup object
-    foot_table = BeautifulSoup(foot.text,'html.parser')
-
-test = BeautifulSoup(screen.text, 'html.parser')
-nfl_box = test.find_all('div',{"class": re.compile('box.*')})
-print(nfl_box[0])
+    # foot_table = BeautifulSoup(foot.text,'html.parser')
+print(p_cook)
+print(s.cookies.get_dict())
+test = BeautifulSoup(foot.text, 'html.parser')
+print(test.prettify())
+tnt = test.find('table')
+print(tnt.prettify())
+for row in tnt
+nfl_box = test.find_all('tr',{"class": re.compile('TrGame*')})
+print(nfl_box[3].style)
 for box in nfl_box:
     print(box.a.title)
 print(target)
