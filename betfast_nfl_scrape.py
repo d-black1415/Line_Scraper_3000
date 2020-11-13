@@ -87,24 +87,52 @@ with requests.Session() as s:
     screen = s.get('https://www.betfastaction.ag/wager/CreateSports.aspx', headers=cs_headers, params=params, cookies=p_cook)
     foot = s.post('https://www.betfastaction.ag/wager/CreateSports.aspx', headers=nfl_headers, params=params, cookies=p_cook, data=nfl)
     
-    #Store nfl page in BeautifulSoup object
-    # foot_table = BeautifulSoup(foot.text,'html.parser')
-print(p_cook)
-print(s.cookies.get_dict())
-test = BeautifulSoup(foot.text, 'html.parser')
-print(test.prettify())
-tnt = test.find('table')
+
+final_foot = BeautifulSoup(foot.text, 'html.parser')
+
+tnt = final_foot.find('table')
 print(tnt.prettify())
-for row in tnt
-nfl_box = test.find_all('tr',{"class": re.compile('TrGame*')})
-print(nfl_box[3].style)
+nfl_box = tnt.find_all('tr',{"class": re.compile('TrGame*')})
 for box in nfl_box:
-    print(box.a.title)
-print(target)
-# teams = foot_table.select('[data-content="Team"]')
-print(foot_table)
-final_table = foot_table.find('table')
-print(final_table)
-games = final_table.find_all('tr', {'class': re.compile('TrGame.*')})
+    print(box)
+test = nfl_box[6]
+print(test)
+tds = test.find_all('td')
+print(tds)
+print(tds[4].input['value'])
+for td in tds:
+    print(f'Line: {td}')
+    print(f'Date: {isDate(td)}')
+    print(f'Line: {isLine(td)}')
+    print(f'ID: {isGameID(td)}')
+for game in nfl_box[:4]:
+    for td in game.find_all('td')[1:-1]:
+        print(td)
+
+tds[1]
+
+# Checks to see if input row is a date
+def isDate(td):
+    if td.text[:4] in ['Jan ','Feb ','Mar ','Apr ','May ','Jun ','Jul ','Aug ','Sep ','Oct ','Nov ','Dec ']:
+        
+        #Return Month, Date
+        return td.text[:4].strip(), td.text[4:].strip()
 
 
+# Checks to see if input row is an input, signalling that it is a line
+def isLine(td):
+    if td.input:
+        line = td.input['value'].split('_')
+        
+        #Return internal game id, line, price
+        return line[1], line[2], line[3]
+
+# Checks if input row is game ID (###)
+def isGameID(td):
+    try:
+        if int(td.text):
+            
+            #Return public game ID
+            return int(td.text)
+    except:
+        None
