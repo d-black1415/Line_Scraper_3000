@@ -102,12 +102,15 @@ print(tds)
 print(tds[4].input['value'])
 for td in tds:
     print(f'Line: {td}')
-    print(f'Date: {isDate(td)}')
-    print(f'Line: {isLine(td)}')
-    print(f'ID: {isGameID(td)}')
+    # print(f'ID: {isGameID(td)}')
+    # print(f'Date: {isDate(td)}')
+    # print(f'Team: {isName(td)}')
+    # print(f'Line: {isLine(td)}')
+    print(attr(td))
+    print('\n')
 for game in nfl_box[:4]:
     for td in game.find_all('td')[1:-1]:
-        print(td)
+        print(td.text)
 
 tds[1]
 
@@ -125,7 +128,7 @@ def isLine(td):
         line = td.input['value'].split('_')
         
         #Return internal game id, line, price
-        return line[1], line[2], line[3]
+        return line[1].strip(), line[2].strip(), line[3].strip()
 
 # Checks if input row is game ID (###)
 def isGameID(td):
@@ -133,6 +136,18 @@ def isGameID(td):
         if int(td.text):
             
             #Return public game ID
-            return int(td.text)
+            return int(td.text.strip())
+    except:
+        None
+
+def isName(td):
+    if len(td.text.strip()) > 8:
+        return td.text.strip()
+
+# Returns data "type" and data for input row
+def attr(td):
+    items = [("Date", isDate(td)),("Line", isLine(td)), ("GameID", isGameID(td)), ("Team", isName(td))]
+    try:
+        return [x for x in items if x[1] is not None][0]
     except:
         None
