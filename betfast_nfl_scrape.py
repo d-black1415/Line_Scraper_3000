@@ -2,6 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import pandas as pd
+import numpy as np
+import pdb
+
 data = {"account":"stevengfan","password":"boopool"}
 
 # cookies = {
@@ -95,7 +98,7 @@ print(tnt.prettify())
 nfl_box = tnt.find_all('tr',{"class": re.compile('TrGame*')})
 for box in nfl_box:
     print(box)
-test = nfl_box[6]
+test = nfl_box[2]
 print(test)
 tds = test.find_all('td')
 print(tds)
@@ -108,12 +111,50 @@ for td in tds:
     # print(f'Line: {isLine(td)}')
     print(attr(td))
     print('\n')
-for game in nfl_box[:4]:
+    
+games = pd.DataFrame(columns = ['Month','Day','Game_ID','Internal_ID','Team','Spread',\
+                                'Spread_Line','Total','Total_Line'])
+    
+date_list = ['','']
+
+for game in nfl_box:
+    app_list = [np.nan for x in range(9)]
     for td in game.find_all('td')[1:-1]:
-        print(td.text)
-
-tds[1]
-
+        print(td)
+        temp = attr(td)
+        # pdb.set_trace()
+        try:
+            if temp[0] == 'Date':
+                date_list[0] = temp[1][0]
+                date_list[1] = temp[1][1]
+                
+            elif temp[0] == 'GameID':
+                app_list[2] = temp[1]
+            
+            elif temp[0] == 'Team':
+                app_list[4] = temp[1]
+            
+            elif temp[0] == 'Line':
+                line = temp[1]
+                app_list[3] = line[1]
+                
+                if line[0] == 'Spread':
+                    app_list[5] = float(line[2])
+                    app_list[6] = float(line[3])
+                    
+                else:
+                    if float(line[2]) < 0:
+                        app_list[7] = f'o{str(line[2][1:])}'
+                    else:
+                        app_list[7] = f'u{str(line[2])}'
+                    
+                    app_list[8] = float(line[3])
+            app_list[0], app_list[1] = date_list
+        except:
+            pass
+    temp_series = pd.Series(app_list, index = games.columns)
+    games = games.append(temp_series, ignore_index = True)
+        
 # Checks to see if input row is a date
 def isDate(td):
     if td.text[:4] in ['Jan ','Feb ','Mar ','Apr ','May ','Jun ','Jul ','Aug ','Sep ','Oct ','Nov ','Dec ']:
@@ -126,9 +167,10 @@ def isDate(td):
 def isLine(td):
     if td.input:
         line = td.input['value'].split('_')
-        
-        #Return internal game id, line, price
-        return line[1].strip(), line[2].strip(), line[3].strip()
+        if 'o' in td.text or 'u' in td.text:
+            return 'Total', line[1].strip(), line[2].strip(), line[3].strip()
+        else:
+            return 'Spread', line[1].strip(), line[2].strip(), line[3].strip()
 
 # Checks if input row is game ID (###)
 def isGameID(td):
@@ -146,7 +188,7 @@ def isName(td):
 
 # Returns data "type" and data for input row
 def attr(td):
-    items = [("Date", isDate(td)),("Line", isLine(td)), ("GameID", isGameID(td)), ("Team", isName(td))]
+    items = [("Date", isDate(td)),('Line', isLine(td)), ("GameID", isGameID(td)), ("Team", isName(td))]
     try:
         return [x for x in items if x[1] is not None][0]
     except:
