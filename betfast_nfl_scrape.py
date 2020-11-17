@@ -3,193 +3,60 @@ from bs4 import BeautifulSoup
 import re
 import pandas as pd
 import numpy as np
+import sys
 import pdb
 
-data = {"account":"stevengfan","password":"boopool"}
+from util.constants import *
 
-# cookies = {
-#     'Cookie-Sport-Selection': '%7B%22SOCCER%20-%20EUROPE%22%3A%221%22%2C%22FOOTBALL%22%3A%221%22%2C%22FOOTBALL%20-%20FUTURES%22%3Anull%2C%22GOLF%22%3Anull%2C%22AUTO%20RACING%22%3Anull%2C%22FOOTBALL%20-%20PROPS%22%3Anull%2C%22LIVE%20IN%20-%20PLAY%22%3Anull%2C%22SOCCER%20PROPS%22%3Anull%2C%22MIXED%20MARTIAL%20ARTS%22%3Anull%7D',
-#     '__cfduid': 'db14c8ef95994b1bbce08ed6d9075f9e31603488273',
-#     'ASP.NET_SessionId': '3uutpvzedmqacfrsbmn3cknd',
-#     'pl': '',
-# }
+# Start Requests Session and navigate to NFL page
+def main():
+    with requests.Session() as s:
+        accountData = {}
+        # Retrieve user credentials via command line parameters
+        accountData[ACCOUNT] = sys.argv[1]
+        accountData[PASSWORD] = sys.argv[2]
 
-message_headers = {
-    'authority': 'www.betfastaction.ag',
-    'cache-control': 'max-age=0',
-    'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'sec-fetch-site': 'same-origin',
-    'sec-fetch-mode': 'navigate',
-    'sec-fetch-user': '?1',
-    'sec-fetch-dest': 'document',
-    'referer': 'https://www.betfastaction.ag/',
-    'accept-language': 'en-US,en;q=0.9',
-}
+        login_resp = s.post(BFA_LOGIN_URL, data=accountData)
+        cookies = login_resp.cookies
+        nfl_page = s.post(BFA_SPORTS_URL, headers=NFL_HEADERS, params=REQ_PARAMS, cookies=cookies, data=NFL_FORM_DATA)
 
-Welcome_headers = {
-    'authority': 'www.betfastaction.ag',
-    'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'sec-fetch-site': 'same-origin',
-    'sec-fetch-mode': 'navigate',
-    'sec-fetch-dest': 'document',
-    'referer': 'https://www.betfastaction.ag/wager/Message.aspx',
-    'accept-language': 'en-US,en;q=0.9',
-}
+    nfl_page_parsed = BeautifulSoup(nfl_page.text, 'html.parser')
 
-cs_headers = {
-    'authority': 'www.betfastaction.ag',
-    'upgrade-insecure-requests': '1',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'sec-fetch-site': 'same-origin',
-    'sec-fetch-mode': 'navigate',
-    'sec-fetch-user': '?1',
-    'sec-fetch-dest': 'document',
-    'referer': 'https://www.betfastaction.ag/wager/Welcome.aspx',
-    'accept-language': 'en-US,en;q=0.9',
-}
+    table = nfl_page_parsed.find('table')
+    # See https://www.crummy.com/software/BeautifulSoup/bs4/doc/#searching-by-css-class for syntax here
+    nfl_box = table.find_all('tr', class_=re.compile('TrGame*'))
 
-params = (
-    ('WT', '0'),
-)
+    games = pd.DataFrame(columns=['Month', 'Day', 'Game_ID', 'Internal_ID', 'Team', 'Spread',
+                                  'Spread_Line', 'Total', 'Total_Line'])
 
-nfl_headers = {
-    'authority': 'www.betfastaction.ag',
-    'cache-control': 'max-age=0',
-    'upgrade-insecure-requests': '1',
-    'origin': 'https://www.betfastaction.ag',
-    'content-type': 'application/x-www-form-urlencoded',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36',
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'sec-fetch-site': 'same-origin',
-    'sec-fetch-mode': 'navigate',
-    'sec-fetch-user': '?1',
-    'sec-fetch-dest': 'document',
-    'referer': 'https://www.betfastaction.ag/wager/CreateSports.aspx?WT=0',
-    'accept-language': 'en-US,en;q=0.9',
-}
+    for game in nfl_box:
+        app_list = retrieve_app_list_for_game(game)
+        games = games.append(pd.Series(app_list, index=games.columns), ignore_index=True)
 
-nfl = {
-  '__EVENTTARGET': 'ctl00$WagerContent$idx_1x1',
-  '__EVENTARGUMENT': '',
-  '__VIEWSTATE': '/wEPDwUKLTMxNjc3NTM3NQ9kFgJmD2QWAgIBD2QWCAIDDw8WAh4EVGV4dAUILTEwOC43NSBkZAIHDw8WAh8ABQczMjYuNjggZGQCCw8PFgIfAAUFMC4wMCBkZAIPDw8WAh8ABQc1NjQuNTcgZGRk/r7mzPZbJFDLRhtuuaulB6RJsZo=',
-  '__VIEWSTATEGENERATOR': '3DB83FCB',
-  '__EVENTVALIDATION': '/wEWqgECobPEowcC/d/+twYC66D1oAECiqWq9AEC/d+Skw8C/92q9g4C++WB0gUC9KCNlgYC9KDBJwLM7MG5BQLyoMH7CwKKpb7PCgL936buBwLplLqkAQLg/Nu6CwKKpdKqAwL937pJAvGg4WAC7KDRhQkC8aDFKgLwoKHPBwLtoJH0DgLvoIHpCwLtoKHEBALxoJkVAu6gjboHAqjPwOkJAsjOwOkJApvmydEFAuyh74cEAoqlxqwGAv3fzqQJAvCgneADAvKgsfEOAuLssWICiqXahw8C/d/i/wECipS6pAEC97jJ/wkC8aq0lQcC18GK/QwCo5S+pQECiqXu4gcC/d/22goC8KDx3wQCiqWCPgL934q2AwKSoaf+CgKKpbbyDgL9356RDAL38tOLBwKKpcrNBwLH3e73DgLxoPmgAQLV98DOBALG3e73DgLyt6noCwLk/a+8CQLVqti/DALW98DOBALF3e73DgK9zs9tAuySwncCsIGwoA8C2Le5+woCi5OStQICsaG79Q0C9MCS1gYCuee1YgKB7eXgDQLT98DOBALE3e73DgLNwraGDgLRwObaBAKKq+zpDgLyoPmnDwKyz4/KBwLuoNHdAQLU98DOBALD3e73DgLC/auVAwK5z/fpDQLC6v30CwKc/NegAwLngoyFAwLHgZiIAwLvwO7cBALs6o2TDQL6t53bAQKA/Y+eAwKpgrT+AgKh/JOjAwKMz9DqDAL0zqvEBwKvwZraBAKT0ISpCwLE6+GYDQLKqrj2DgLl0ITkCgKsgtiHAwLpz5T+BgKtotvoCwLY5amvDQLzt7HUAQKHqsDxDgLYzqvGBwLqgsSDAwKF7K2TDQLY5b2yDQKooYP0CwLMz7z3BwLZzp++BwLTuOHcAQLMqvD4DgKxwcreBAKPofPxCwKj/KehAwKNuP3cAQKSz4CjDgLik+KECQLywMLgBALR98DOBALC3e73DgLEkvaVBQKD/bu/CQKZ5dXEBQK3zpPLBwLxoM2MBgLS98DOBALB3e73DgK9/susAgLsoNmECwLP98DOBALA3e73DgLc/PeUCAKmqqy4DwKOuuGCBQKmqrDdBgLIobOnAgL35eXnAwLQ98DOBAK/3e73DgLPgZjIBgLd98DOBAK+3e73DgLuoM2gAgLe98DOBALH3YLTBwLA5u2zDQKH/tO4CwLC5vW1DQLRgpyJAwLV99SpDQLG3YLTBwLd5umyDQLc5smqDQLW99SpDQLF3YLTBwKr7MGgDQKTwv7gBALT99SpDQLE3YLTBwL0oN3gAQLU99SpDQLD3YLTBwLj/KvsAwLR99SpDQLC3YLTBwK55/31DQLS99SpDcpEMvI/74hslYEJVo6WeyViTi4O'
-}
 
-#Start Requests Session and navigate to NFL page
-with requests.Session() as s:
-    p = s.post("https://www.betfastaction.ag/login.aspx", data = data)
-    p_cook = s.cookies
-    mes = s.get('https://www.betfastaction.ag/wager/Message.aspx', headers=message_headers, cookies=p_cook)
-    wel = s.get('https://www.betfastaction.ag/wager/Welcome.aspx', headers=Welcome_headers, cookies=p_cook)
-    screen = s.get('https://www.betfastaction.ag/wager/CreateSports.aspx', headers=cs_headers, params=params, cookies=p_cook)
-    foot = s.post('https://www.betfastaction.ag/wager/CreateSports.aspx', headers=nfl_headers, params=params, cookies=p_cook, data=nfl)
-    
+def retrieve_app_list_for_game(game):
+    app_list = [np.nan for x in range(NUM_COLS)]
+    td_arr = game.find_all('td')
+    date_td = td_arr[DATE_IDX]
+    if isDate(date_td):
+        app_list[0] = date_td.text.split(' ')[0]
+        app_list[1] = date_td.text.split(' ')[1]
+    app_list[2] = td_arr[GAME_ID_IDX].text.strip()
+    app_list[4] = td_arr[TEAM_IDX].text.strip()
+    spread_input_value = td_arr[SPREAD_IDX].input['value']
+    app_list[3] = spread_input_value.split('_')[1]
+    app_list[5] = spread_input_value.split('_')[2]
+    app_list[6] = spread_input_value.split('_')[3]
+    total_input_value = td_arr[TOTAL_IDX].input['value']
+    app_list[7] = total_input_value.split('_')[2]
+    app_list[8] = total_input_value.split('_')[3]
+    print(app_list)
+    return app_list
 
-final_foot = BeautifulSoup(foot.text, 'html.parser')
 
-tnt = final_foot.find('table')
-print(tnt.prettify())
-nfl_box = tnt.find_all('tr',{"class": re.compile('TrGame*')})
-for box in nfl_box:
-    print(box)
-test = nfl_box[2]
-print(test)
-tds = test.find_all('td')
-print(tds)
-print(tds[4].input['value'])
-for td in tds:
-    print(f'Line: {td}')
-    # print(f'ID: {isGameID(td)}')
-    # print(f'Date: {isDate(td)}')
-    # print(f'Team: {isName(td)}')
-    # print(f'Line: {isLine(td)}')
-    print(attr(td))
-    print('\n')
-    
-games = pd.DataFrame(columns = ['Month','Day','Game_ID','Internal_ID','Team','Spread',\
-                                'Spread_Line','Total','Total_Line'])
-    
-date_list = ['','']
-
-for game in nfl_box:
-    app_list = [np.nan for x in range(9)]
-    for td in game.find_all('td')[1:-1]:
-        print(td)
-        temp = attr(td)
-        # pdb.set_trace()
-        try:
-            if temp[0] == 'Date':
-                date_list[0] = temp[1][0]
-                date_list[1] = temp[1][1]
-                
-            elif temp[0] == 'GameID':
-                app_list[2] = temp[1]
-            
-            elif temp[0] == 'Team':
-                app_list[4] = temp[1]
-            
-            elif temp[0] == 'Line':
-                line = temp[1]
-                app_list[3] = line[1]
-                
-                if line[0] == 'Spread':
-                    app_list[5] = float(line[2])
-                    app_list[6] = float(line[3])
-                    
-                else:
-                    if float(line[2]) < 0:
-                        app_list[7] = f'o{str(line[2][1:])}'
-                    else:
-                        app_list[7] = f'u{str(line[2])}'
-                    
-                    app_list[8] = float(line[3])
-            app_list[0], app_list[1] = date_list
-        except:
-            pass
-    temp_series = pd.Series(app_list, index = games.columns)
-    games = games.append(temp_series, ignore_index = True)
-        
 # Checks to see if input row is a date
-def isDate(td):
-    if td.text[:4] in ['Jan ','Feb ','Mar ','Apr ','May ','Jun ','Jul ','Aug ','Sep ','Oct ','Nov ','Dec ']:
-        
-        #Return Month, Date
-        return td.text[:4].strip(), td.text[4:].strip()
+def isDate(date_td):
+    return any(month in date_td.text for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
 
-
-# Checks to see if input row is an input, signalling that it is a line
-def isLine(td):
-    if td.input:
-        line = td.input['value'].split('_')
-        if 'o' in td.text or 'u' in td.text:
-            return 'Total', line[1].strip(), line[2].strip(), line[3].strip()
-        else:
-            return 'Spread', line[1].strip(), line[2].strip(), line[3].strip()
-
-# Checks if input row is game ID (###)
-def isGameID(td):
-    try:
-        if int(td.text):
-            
-            #Return public game ID
-            return int(td.text.strip())
-    except:
-        None
-
-def isName(td):
-    if len(td.text.strip()) > 8:
-        return td.text.strip()
-
-# Returns data "type" and data for input row
-def attr(td):
-    items = [("Date", isDate(td)),('Line', isLine(td)), ("GameID", isGameID(td)), ("Team", isName(td))]
-    try:
-        return [x for x in items if x[1] is not None][0]
-    except:
-        None
+if __name__ == "__main__":
+    main()
