@@ -26,7 +26,7 @@ def main():
     # See https://www.crummy.com/software/BeautifulSoup/bs4/doc/#searching-by-css-class for syntax here
     nfl_box = table.find_all('tr', class_=re.compile('TrGame*'))
 
-    games = pd.DataFrame(columns=['Month', 'Day', 'Game_ID', 'Internal_ID', 'Team', 'Spread',
+    games = pd.DataFrame(columns=['Month', 'Day', 'Team_ID', 'Internal_ID', 'Team', 'Spread',
                                   'Spread_Line', 'Total', 'Total_Line'])
 
     for game in nfl_box:
@@ -41,7 +41,7 @@ def retrieve_app_list_for_game(game):
     if isDate(date_td):
         app_list[0] = date_td.text.split(' ')[0]
         app_list[1] = date_td.text.split(' ')[1]
-    app_list[2] = td_arr[GAME_ID_IDX].text.strip()
+    app_list[2] = td_arr[TEAM_ID_IDX].text.strip()
     app_list[4] = td_arr[TEAM_IDX].text.strip()
     spread_input_value = td_arr[SPREAD_IDX].input['value']
     app_list[3] = spread_input_value.split('_')[1]
