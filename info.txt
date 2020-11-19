@@ -1,0 +1,3 @@
+https://curl.trillworks.com/
+
+Use this website to convert post methods to python requests headers, data, etc.
