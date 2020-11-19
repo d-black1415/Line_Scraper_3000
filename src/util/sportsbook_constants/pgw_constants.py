@@ -1,5 +1,6 @@
 # PGW related constants
 
+PGW_CRED_ROW_IDX = 1
 PGW_BASE_URL = "https://pgwlines.com/"
 PGW_LOGIN_URL = PGW_BASE_URL + '/default.aspx'
 PGW_SPORTS_URL = PGW_BASE_URL + "/wager/CreateSports.aspx"
@@ -13,8 +14,8 @@ PGW_LOGIN_FORM = {
   '__VIEWSTATE': '/wEPDwUENTM4MWQYAQUeX19Db250cm9sc1JlcXVpcmVQb3N0QmFja0tleV9fFgEFJGN0bDAwJE1haW5Db250ZW50JGN0bExvZ2luJEJ0blN1Ym1pdH0HpK9E6CXKnHk9NvkOvX5k8O7z',
   '__VIEWSTATEGENERATOR': 'CA0B0334',
   '__EVENTVALIDATION': '/wEWBgKV6qGECgL4lt/gCgLHhaW/AwLIlrvGCgLZh4jSAQKMseCTDpQNr+9u7/z7mDzubxcNh8OxEz4q',
-  'ctl00$MainContent$ctlLogin$_UserName': 'Rosie',
-  'ctl00$MainContent$ctlLogin$_Password': 'magic',
+  'ctl00$MainContent$ctlLogin$_UserName': '',
+  'ctl00$MainContent$ctlLogin$_Password': '',
   'ctl00$MainContent$ctlLogin$BtnSubmit.x': '44',
   'ctl00$MainContent$ctlLogin$BtnSubmit.y': '25',
   'ctl00$MainContent$ctlLogin$_IdBook': '25',
@@ -48,11 +49,3 @@ NFL_FORM_DATA = {
   'lg_229': '229',
   'ctl00$WagerContent$btn_Continue1': 'Continue'
 }
-
-NUM_COLS = 9
-
-DATE_IDX = 1
-TEAM_ID_IDX = 2
-TEAM_IDX = 3
-SPREAD_IDX = 4
-TOTAL_IDX = 5
