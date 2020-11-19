@@ -6,7 +6,7 @@ import numpy as np
 import sys
 import pdb
 
-from util.BFA_constants import *
+from util.BFA_constants  import *
 
 # Start Requests Session and navigate to NFL page
 def main():
