@@ -3,7 +3,6 @@ import re
 
 from src.util.constants import *
 
-
 # Checks to see if input row is a date
 def is_date(date_td):
     return any(month in date_td.text for month in
@@ -16,16 +15,22 @@ def find_game_elements(table):
     return table.find_all('tr', class_=re.compile('TrGame*'))
 
 # Replace text 'half' with '.5
-def clean_line(text):
+def replace_half_with_decimal(text):
     return text.replace('½','.5')
 
 # Extracts line or odds from string Ex: '-3 -120'
 def convert_line(text, odds = False):
-    length = len(text)
-    if odds:
-        return text[length - 4:].strip()
+    if text != '':
+        length = len(text)
+        split_location = re.search('[+-][1-9]\d{2}$',text).start(0)
+
     else:
-        return text[:length - 4].strip()
+        return 'Not Found'
+    
+    if odds:
+        return text[length - split_location:].strip()
+    else:
+        return text[:split_location].strip()
 
 # Replace o/u prefix with '-'/'' to standardize across books    
 def total_line(text):
@@ -35,39 +40,50 @@ def total_line(text):
         return text.replace('u','')
 
 # Retrieves data frame for game
-def retrieve_data_frame_for_game(game):
+def retrieve_data_frame_for_game(game, book_name = False):
     app_list = [np.nan for x in range(NUM_COLS)]
     td_arr = game.find_all('td')
     date_td = td_arr[DATE_IDX]
     if is_date(date_td):
         app_list[0] = date_td.text.split(' ')[0]
         app_list[1] = date_td.text.split(' ')[1]
+    
     app_list[2] = td_arr[TEAM_ID_IDX].text.strip()
     app_list[4] = td_arr[TEAM_IDX].text.strip()
-    spread_input_value = td_arr[SPREAD_IDX].input['value']
-    app_list[3] = spread_input_value.split('_')[1]
-    app_list[5] = spread_input_value.split('_')[2]
-    app_list[6] = spread_input_value.split('_')[3]
-    total_input_value = td_arr[TOTAL_IDX].input['value']
-    app_list[7] = total_input_value.split('_')[2]
-    app_list[8] = total_input_value.split('_')[3]
+    
+    if book_name == 'Dog':
+        app_list[5] = convert_line(replace_half_with_decimal(td_arr[SPREAD_IDX].text.strip()))
+        app_list[6] = convert_line(td_arr[SPREAD_IDX].text.strip(), odds = True)
+        app_list[7] = convert_line(replace_half_with_decimal(total_line(td_arr[TOTAL_IDX].text.strip())))
+        app_list[8] = convert_line(td_arr[TOTAL_IDX].text.strip(), odds = True)
+    
+    else:
+        
+        spread_td_elem = td_arr[SPREAD_IDX]
+        if spread_td_elem.input is not None:
+            spread_input_value = spread_td_elem.input['value']
+            app_list[3] = spread_input_value.split('_')[1]
+            app_list[5] = spread_input_value.split('_')[2]
+            app_list[6] = spread_input_value.split('_')[3]
+        
+        else:
+            app_list[3] = "Not Found"
+            app_list[5] = "Not Found"
+            app_list[6] = "Not Found"
+            print("Team: {} lacks spread value".format(app_list[4]))
+
+        total_td_elem = td_arr[TOTAL_IDX]
+        if total_td_elem.input is not None:
+            total_input_value = total_td_elem.input['value']
+            app_list[7] = total_input_value.split('_')[2]
+            app_list[8] = total_input_value.split('_')[3]
+        else:
+            app_list[7] = "Not Found"
+            app_list[8] = "Not Found"
+            print("Team: {} lacks total value".format(app_list[4]))
+
     return app_list
 
-# Retrieves data frame for game on Dog
-def dog_retrieve_data_frame_for_game(game):
-    app_list = [np.nan for x in range(NUM_COLS)]
-    td_arr = game.find_all('td')
-    date_td = td_arr[DATE_IDX]
-    if is_date(date_td):
-        app_list[0] = date_td.text.split(' ')[0]
-        app_list[1] = date_td.text.split(' ')[1]
-    app_list[2] = td_arr[TEAM_ID_IDX].text.strip()
-    app_list[4] = td_arr[TEAM_IDX].text.strip() 
-    app_list[5] = clean_line(convert_line(td_arr[SPREAD_IDX].text.strip()))
-    app_list[6] = convert_line(td_arr[SPREAD_IDX].text.strip(), odds = True)
-    app_list[7] = clean_line(total_line(convert_line(td_arr[TOTAL_IDX].text.strip())))
-    app_list[8] = convert_line(td_arr[TOTAL_IDX].text.strip(), odds = True)
-    return app_list
 
 # Fills nan month and day for away teams
 def fill_dates(df, first_row = False):
