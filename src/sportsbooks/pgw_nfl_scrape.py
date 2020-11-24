@@ -5,7 +5,7 @@ import sys
 
 from src.credentials.cred_reader import CredentialReader
 from src.sportsbooks.sportsbook import SportsBook
-from src.util.helpers import retrieve_data_frame_for_game, find_game_elements
+from src.util.helpers import retrieve_data_frame_for_game, find_game_elements, fill_dates
 from src.util.sportsbook_constants.pgw_constants import *
 
 
@@ -36,3 +36,4 @@ class PGW(SportsBook):
             self.nfl_games_frame = self.nfl_games_frame.append(
                 pd.Series(game_data_frame, index=self.nfl_games_frame.columns), ignore_index=True)
 
+        self.nfl_games_frame = fill_dates(self.nfl_games_frame)

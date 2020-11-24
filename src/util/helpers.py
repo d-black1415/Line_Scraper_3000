@@ -1,5 +1,7 @@
 import numpy as np
 import re
+from datetime import datetime
+import pandas as pd
 
 from src.util.constants import *
 
@@ -41,6 +43,30 @@ def total_line(text):
 
 # Retrieves data frame for game
 def retrieve_data_frame_for_game(game, book_name = False):
+    
+    if book_name == 'Falcon':
+        home_series = dict()
+        home_series['Month'], home_series['Day'] = convert_integer_date(game['gmdt'])
+        home_series['Team_ID'] = game['hnum']
+        home_series['Internal_ID'] = game['idgm']
+        home_series['Team'] = game['htm']
+        home_series['Spread'] = game['GameLines'][0]['hsprdt']
+        home_series['Spread_Line'] = game['GameLines'][0]['hsprdoddst']
+        home_series['Total'] = game['GameLines'][0]['ovt']
+        home_series['Total_Line'] = game['GameLines'][0]['ovoddst']
+        
+        away_series = dict()
+        away_series['Month'], away_series['Day'] = convert_integer_date(game['gmdt'])
+        away_series['Team_ID'] = game['vnum']
+        away_series['Internal_ID'] = game['idgm']
+        away_series['Team'] = game['vtm']
+        away_series['Spread'] = game['GameLines'][0]['vsprdt']
+        away_series['Spread_Line'] = game['GameLines'][0]['vsprdoddst']
+        away_series['Total'] = game['GameLines'][0]['unt']
+        away_series['Total_Line'] = game['GameLines'][0]['unoddst']
+        
+        return pd.DataFrame([pd.Series(home_series), pd.Series(away_series)])
+    
     app_list = [np.nan for x in range(NUM_COLS)]
     td_arr = game.find_all('td')
     date_td = td_arr[DATE_IDX]
@@ -93,3 +119,26 @@ def fill_dates(df, first_row = False):
         df.iloc[1::2][['Month','Day']] = df[['Month','Day']].shift(1).iloc[1::2]
     return df
 
+# Month Dictionary
+month_dict = {
+    '01': 'Jan',
+    '02': 'Feb',
+    '03': 'Mar',
+    '04': 'Apr',
+    '05': 'May',
+    '06': 'Jun',
+    '07': 'Jul',
+    '08': 'Aug',
+    '09': 'Sep',
+    '10': 'Oct',
+    '11': 'Nov',
+    '12': 'Dec'
+    }
+
+# Converts date from 'yyyymmdd' to month and day
+def convert_integer_date(date, month_dict = month_dict):
+    new_date = datetime.strptime(date.strip(), '%Y%m%d').strftime('%m/%d/%Y')
+    first_slash = new_date.find('/')
+    second_slash = new_date.find('/', first_slash + 1)
+    return month_dict[new_date[:first_slash]], new_date[first_slash + 1: second_slash]
+    
