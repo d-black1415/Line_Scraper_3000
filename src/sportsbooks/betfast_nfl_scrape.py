@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from src.credentials.cred_reader import CredentialReader
 from src.sportsbooks.sportsbook import SportsBook
 
-from src.util.helpers import find_game_elements, retrieve_data_frame_for_game
+from src.util.helpers import find_game_elements, retrieve_data_frame_for_game, fill_dates
 from src.util.sportsbook_constants.bfa_constants import *
 
 
@@ -36,3 +36,5 @@ class BetFastAction(SportsBook):
             game_data_frame = retrieve_data_frame_for_game(game)
             self.nfl_games_frame = self.nfl_games_frame.append(
                 pd.Series(game_data_frame, index=self.nfl_games_frame.columns), ignore_index=True)
+        
+        self.nfl_games_frame = fill_dates(self.nfl_games_frame)
