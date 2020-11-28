@@ -13,7 +13,12 @@ class Falcon(SportsBook):
         
     def login_and_retrieve_nfl_page(self):
         with requests.Session() as s:
-          
+            falcon_creds = CredentialReader.read_cred_row(FALCON_CRED_ROW_IDX)
+            FALCON_LOGIN_FORM['account'] = falcon_creds[0]
+            FALCON_LOGIN_FORM['password'] = falcon_creds[1]
+            
+            login_req = s.post(FALCON_LOGIN_URL, data = FALCON_LOGIN_FORM)
+            
             nfl_page = s.get(FALCON_NFL_URL, headers = NFL_HEADERS, params = REQ_PARAMS)
             nfl_box = nfl_page.json()
             return nfl_box['result']['listLeagues'][0][0]['Games']
