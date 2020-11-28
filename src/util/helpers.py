@@ -23,6 +23,7 @@ def replace_half_with_decimal(text):
 # Extracts line or odds from string Ex: '-3 -120'
 def convert_line(text, odds = False):
     if text != '':
+        text = text.replace('EV','+100')
         length = len(text)
         split_location = re.search('[+-][1-9]\d{2}$',text).start(0)
 
