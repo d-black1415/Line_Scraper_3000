@@ -139,6 +139,5 @@ month_dict = {
 # Converts date from 'yyyymmdd' to month and day
 def convert_integer_date(date):
     new_date = datetime.strptime(date.strip(), '%Y%m%d').strftime('%m/%d/%Y')
-new_date_parts = new_date.split('/')
-return month_dict[new_date_parts[0]], new_date_parts[1]
-    
+    new_date_parts = new_date.split('/')
+    return month_dict[new_date_parts[0]], new_date_parts[1]
