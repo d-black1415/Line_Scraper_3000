@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import sys
 
 from src.credentials.cred_reader import CredentialReader
 from src.sportsbooks.sportsbook import SportsBook
@@ -28,7 +27,6 @@ class PGW(SportsBook):
     def retrieve_nfl_data_frame(self):
         nfl_page = self.login_and_retrieve_nfl_page()
         parsed_nfl_page = BeautifulSoup(nfl_page.text, 'html.parser')
-        # See https://www.crummy.com/software/BeautifulSoup/bs4/doc/#searching-by-css-class for syntax here
         nfl_box = find_game_elements(parsed_nfl_page)
 
         for game in nfl_box:
