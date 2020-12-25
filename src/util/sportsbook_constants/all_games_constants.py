@@ -29,3 +29,5 @@ NFL_FORM_DATA = {
   'Array': 'MQ==',
   'TeaserType': '-1'
 }
+
+REGEX_GAME_FINDER = '^\d{7}$'

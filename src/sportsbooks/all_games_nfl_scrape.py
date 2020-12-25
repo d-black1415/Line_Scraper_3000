@@ -27,7 +27,7 @@ class AllGames(SportsBook):
         self.nfl_games_frame['MoneyLine'] = ''
         nfl_page = self.login_and_retrieve_nfl_page()
         nfl_page_parsed = BeautifulSoup(nfl_page.text, 'html.parser')
-        games = nfl_page_parsed.find_all('div',{'id': re.compile('^\d{7}$')})
+        games = nfl_page_parsed.find_all('div',{'id': re.compile(REGEX_GAME_FINDER)})
         for game in games:
             game_frame = retrieve_data_frame_for_game(game, self.book_name)
             self.nfl_games_frame = self.nfl_games_frame.append(game_frame, ignore_index = True)
