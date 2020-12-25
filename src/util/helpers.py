@@ -5,7 +5,6 @@ import pandas as pd
 
 from src.util.constants import *
 
-
 # Checks to see if input row is a date
 def is_date(date_td):
     return any(month in date_td.text for month in
@@ -20,7 +19,7 @@ def find_game_elements(table):
 
 # Replace text 'half' with '.5
 def replace_half_with_decimal(text):
-    return text.replace('½', '.5')
+    return text.replace('½', '.5').replace(' ','')
 
 
 # Extracts line or odds from string Ex: '-3 -120'
@@ -34,7 +33,7 @@ def convert_line(text, odds=False):
         return 'Not Found'
 
     if odds:
-        return text[length - split_location:].strip()
+        return text[split_location:].strip()
     else:
         return text[:split_location].strip()
 
@@ -47,8 +46,79 @@ def total_line(text):
         return text.replace('u', '')
 
 
+        
+        
+
+
 # Retrieves data frame for game
 def retrieve_data_frame_for_game(game, book_name=False):
+    if book_name == 'All_Games':
+        away_dict = dict()
+        rows = game.find_all('div',{'class': re.compile('^row')})
+        away = rows[0]
+        away_game_info = away.find_all('span',{'class': re.compile('^lbet-')})    
+        away_dict['Team_ID'] = re.sub('[^0-9]', '', away_game_info[0].text)
+        away_dict['Team'] = away_game_info[1].text
+        away_lines = away.find_all('label',{'class':'custom-control-label'})
+        
+        away_dict['Spread'] = replace_half_with_decimal(convert_line(away_lines[0].text))
+        away_dict['Spread_Line'] = replace_half_with_decimal(convert_line(away_lines[0].text, odds = True))
+        if len(away_lines) > 1:
+            away_dict['Total'] = total_line(replace_half_with_decimal(convert_line(away_lines[1].text)))    
+            away_dict['Total_Line'] = total_line(replace_half_with_decimal(convert_line(away_lines[1].text, odds = True)))    
+            if len(away_lines) > 2:
+                away_dict['MoneyLine'] = away_lines[2].text
+        else:
+            away_dict['Total'] = 'Not Found'
+            away_dict['Total_Line'] = 'Not Found'
+            away_dict['MoneyLine'] = 'Not Found'
+            
+        away_series = pd.Series(away_dict)
+        
+        
+        home_dict = dict()
+        home = rows[1]
+        home_game_info = home.find_all('span',{'class': re.compile('^lbet-')})    
+        home_dict['Team_ID'] = re.sub('[^0-9]', '', home_game_info[0].text)
+        home_dict['Team'] = home_game_info[1].text
+        home_lines = home.find_all('label',{'class':'custom-control-label'})
+        home_dict['Spread'] = replace_half_with_decimal(convert_line(home_lines[0].text))
+        home_dict['Spread_Line'] = replace_half_with_decimal(convert_line(home_lines[0].text, odds = True))
+        if len(home_lines) > 1:
+            home_dict['Total'] = total_line(replace_half_with_decimal(convert_line(home_lines[1].text)))    
+            home_dict['Total_Line'] = total_line(replace_half_with_decimal(convert_line(home_lines[1].text, odds = True)))    
+            if len(home_lines) > 2:
+                home_dict['MoneyLine'] = home_lines[2].text
+            else:
+                home_dict['MoneyLine'] = 'Not Found'
+        else:
+            home_dict['Total'] = 'Not Found'
+            home_dict['Total_Line'] = 'Not Found'
+            home_dict['MoneyLine'] = 'Not Found'
+    
+        home_series = pd.Series(home_dict)
+        
+        return pd.DataFrame([home_series, away_series])
+            
+    if book_name == 'BookieMarket':
+        if game.find('span',{'class': re.compile('team-name[0-9]')}).text[0] == '1':
+            return pd.DataFrame()
+        team_data = game.find_all('div',{'class':'some-space'})
+        temp_frame = pd.DataFrame()
+        for team in team_data[:2]:
+            temp_dict = dict()
+            temp_dict['Team'] = team.find('span',{'class': re.compile('team-name[0-9]')}).text
+            temp_dict['Team_ID'] = team.find('span',{'class':'time'}).text
+            temp_dict['Internal_ID'] = game['id'][12:-3]
+            temp_dict['MoneyLine'] = replace_half_with_decimal(team.find('li',{'class':re.compile('^money')}).find('span',{'class':'money-limit'}).text)
+            temp_dict['Spread'] = replace_half_with_decimal(team.find('li',{'class':re.compile('^spread')}).find('span',{'class':'upper-limit'}).text)
+            temp_dict['Spread_Line'] = replace_half_with_decimal(team.find('li',{'class':re.compile('^spread')}).find('span',{'class':'lower-limit'}).text)
+            temp_dict['Total'] = replace_half_with_decimal(''.join([item.text for item in team.find('li',{'class':re.compile('^total')}).find_all('span',{'class':'upper-limit'})]))
+            temp_dict['Total_Line'] = replace_half_with_decimal(team.find('li',{'class':re.compile('^total')}).find('span',{'class':'lower-limit'}).text)
+            temp_dict['Month'], temp_dict['Day'] = ['','']
+            temp_frame = temp_frame.append(pd.Series(temp_dict), ignore_index = True)
+        return temp_frame
+    
     if book_name == 'Falcon':
         home_series = dict()
         home_series['Month'], home_series['Day'] = convert_integer_date(game['gmdt'])

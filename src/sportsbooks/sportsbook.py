@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 import pandas as pd
-
+import numpy as np
 
 class SportsBook(ABC):
 
@@ -17,6 +17,6 @@ class SportsBook(ABC):
     @abstractmethod
     def retrieve_nfl_data_frame(self):
         pass
-
+    
     def __str__(self):
         return 'NFL Frame for book: {}\n {}'.format(self.book_name, self.nfl_games_frame)
