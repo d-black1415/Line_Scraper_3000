@@ -7,8 +7,6 @@ PLAY365_NFL_URL = r'https://engine.play365.ag/wager/betslip/getLinesbyLeague.asp
 PLAY365_LOGIN_FORM_DATA = {
   'IdBook': '4',
   'Redir': '',
-  # 'account': 'Cks1073',
-  # 'password': 'black1',
   'IdBook': '',
 }
 
@@ -29,7 +27,6 @@ NFL_HEADERS = {
 }
 
 NFL_DATA = {
-  # 'pi': 'CKS1073|black1',
   'pid': '262519',
   'aid': '13136',
   'idp': '2061',
