@@ -31,3 +31,4 @@ class AllGames(SportsBook):
         for game in games:
             game_frame = retrieve_data_frame_for_game(game, self.book_name)
             self.nfl_games_frame = self.nfl_games_frame.append(game_frame, ignore_index = True)
+            
