@@ -8,7 +8,6 @@ from src.sportsbooks.sportsbook import SportsBook
 from src.util.helpers import find_game_elements, retrieve_data_frame_for_game, fill_dates
 from src.util.sportsbook_constants.bfa_constants import *
 
-
 class BetFastAction(SportsBook):
 
     def __init__(self):
@@ -26,15 +25,15 @@ class BetFastAction(SportsBook):
 
     def retrieve_nfl_data_frame(self):
         nfl_page = self.login_and_retrieve_nfl_page()
-
+        
         nfl_page_parsed = BeautifulSoup(nfl_page.text, 'html.parser')
 
         table = nfl_page_parsed.find('table')
         nfl_box = find_game_elements(table)
-
         for game in nfl_box:
             game_data_frame = retrieve_data_frame_for_game(game)
             self.nfl_games_frame = self.nfl_games_frame.append(
                 pd.Series(game_data_frame, index=self.nfl_games_frame.columns), ignore_index=True)
             
         self.nfl_games_frame = fill_dates(self.nfl_games_frame)
+        self.nfl_games_frame = self.nfl_games_frame.drop_duplicates(subset = ['Team_ID'], ignore_index = True)

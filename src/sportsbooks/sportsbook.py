@@ -7,7 +7,7 @@ class SportsBook(ABC):
 
     def __init__(self):
         self.nfl_games_frame = pd.DataFrame(columns=['Month', 'Day', 'Team_ID', 'Internal_ID', 'Team', 'Spread',
-                                                     'Spread_Line', 'Total', 'Total_Line'])
+                                                     'Spread_Line', 'Total', 'Total_Line','MoneyLine'])
 
     @abstractmethod
     def login_and_retrieve_nfl_page(self):
