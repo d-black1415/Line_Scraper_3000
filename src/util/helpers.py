@@ -3,7 +3,6 @@ import re
 from datetime import datetime
 import pandas as pd
 from src.util.constants import *
-import pdb
 # Checks to see if input row is a date
 def is_date(date_td):
     return any(month in date_td.text for month in
@@ -269,7 +268,6 @@ def retrieve_data_frame_for_game(game, book_name=False):
         return temp_frame
     
     if book_name == 'Falcon':
-        # pdb.set_trace()
         home_series = dict()
         home_series['Month'], home_series['Day'] = convert_integer_date(game['gmdt'])
         home_series['Team_ID'] = game['hnum']
