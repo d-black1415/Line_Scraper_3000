@@ -27,9 +27,9 @@ def bmarket_clean_line(line):
 # Decimal odds to American Odds
 def decimal_to_american(line):
     if line < 2:
-        return round(-100/(line - 1),0)
+        return int(round(-100/(line - 1),0))
     else:
-        return round((line - 1)*100,0)
+        return int(round((line - 1)*100,0))
     
 # Extracts line or odds from string Ex: '-3 -120'
 def convert_line(text, odds=False):
@@ -42,9 +42,9 @@ def convert_line(text, odds=False):
         return 'Not Found'
 
     if odds:
-        return text[split_location:].strip()
+        return text[split_location:].strip().replace(' ','')
     else:
-        return text[:split_location].strip()
+        return replace_half_with_decimal(text[:split_location].strip())
 
 
 # Replace o/u prefix with '-'/'' to standardize across books
@@ -180,15 +180,15 @@ def retrieve_data_frame_for_game(game, book_name=False):
             game_dict['Team'] = 'Not Found'
         
         try:
-            game_dict['Spread'] = replace_half_with_decimal(convert_line(game.find('div',{'class':re.compile('^linesSpread')}).a.text, odds = False))
-            game_dict['Spread_Line'] = replace_half_with_decimal(convert_line(game.find('div',{'class':re.compile('^linesSpread')}).a.text, odds = True))
+            game_dict['Spread'] = convert_line(game.find('div',{'class':re.compile('^linesSpread')}).a.text, odds = False)
+            game_dict['Spread_Line'] = convert_line(game.find('div',{'class':re.compile('^linesSpread')}).a.text, odds = True)
         except:
             game_dict['Spread'] = 'Not Found'
             game_dict['Spread_Line'] = 'Not Found'
         
         try:
-            game_dict['Total'] = total_line(replace_half_with_decimal(convert_line(game.find('div',{'class':re.compile('^linesMl')}).a.text, odds = False)))
-            game_dict['Total_Line'] = replace_half_with_decimal(convert_line(game.find('div',{'class':re.compile('^linesMl')}).a.text, odds = True))
+            game_dict['Total'] = total_line(convert_line(game.find('div',{'class':re.compile('^linesMl')}).a.text, odds = False))
+            game_dict['Total_Line'] = convert_line(game.find('div',{'class':re.compile('^linesMl')}).a.text, odds = True)
         except:
             game_dict['Total'] = 'Not Found'
             game_dict['Total_Line'] = 'Not Found'
@@ -209,11 +209,11 @@ def retrieve_data_frame_for_game(game, book_name=False):
         away_dict['Team'] = away_game_info[1].text
         away_lines = away.find_all('label',{'class':'custom-control-label'})
         if len(away_lines) > 0:
-            away_dict['Spread'] = replace_half_with_decimal(convert_line(away_lines[0].text))
-            away_dict['Spread_Line'] = replace_half_with_decimal(convert_line(away_lines[0].text, odds = True))
+            away_dict['Spread'] = convert_line(away_lines[0].text)
+            away_dict['Spread_Line'] = convert_line(away_lines[0].text, odds = True)
         if len(away_lines) > 1:
-            away_dict['Total'] = total_line(replace_half_with_decimal(convert_line(away_lines[1].text)))    
-            away_dict['Total_Line'] = total_line(replace_half_with_decimal(convert_line(away_lines[1].text, odds = True)))    
+            away_dict['Total'] = total_line(convert_line(away_lines[1].text))
+            away_dict['Total_Line'] = total_line(convert_line(away_lines[1].text, odds = True))   
             if len(away_lines) > 2:
                 away_dict['MoneyLine'] = away_lines[2].text
         else:
@@ -231,11 +231,11 @@ def retrieve_data_frame_for_game(game, book_name=False):
         home_dict['Team'] = home_game_info[1].text
         home_lines = home.find_all('label',{'class':'custom-control-label'})
         if len(home_lines) > 0:
-            home_dict['Spread'] = replace_half_with_decimal(convert_line(home_lines[0].text))
-            home_dict['Spread_Line'] = replace_half_with_decimal(convert_line(home_lines[0].text, odds = True))
+            home_dict['Spread'] = convert_line(home_lines[0].text)
+            home_dict['Spread_Line'] = convert_line(home_lines[0].text, odds = True)
         if len(home_lines) > 1:
-            home_dict['Total'] = total_line(replace_half_with_decimal(convert_line(home_lines[1].text)))    
-            home_dict['Total_Line'] = total_line(replace_half_with_decimal(convert_line(home_lines[1].text, odds = True)))    
+            home_dict['Total'] = total_line(convert_line(home_lines[1].text))
+            home_dict['Total_Line'] = total_line(convert_line(home_lines[1].text, odds = True))
             if len(home_lines) > 2:
                 home_dict['MoneyLine'] = home_lines[2].text
             else:
@@ -339,7 +339,7 @@ def retrieve_data_frame_for_game(game, book_name=False):
         ml_td_elem = td_arr[ML_IDX]
         if ml_td_elem.input is not None:
             ml_td_elem_value = ml_td_elem.input['value']
-            app_list[9] = ml_td_elem_value.split('_')[-1]
+            app_list[9] = int(ml_td_elem_value.split('_')[-1])
         else:
             app_list[9] = "Not Found"
             
